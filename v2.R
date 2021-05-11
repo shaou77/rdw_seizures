@@ -123,3 +123,5 @@ forestplot(labeltext = as.matrix(rs_forest[,1:2]), title="Odds Ratio",
            lwd.xaxis=2,#设置X轴线的粗细
            lty.ci = "solid",
            graph.pos = 2)
+                                 
+                                 
