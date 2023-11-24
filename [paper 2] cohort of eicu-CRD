@@ -1,0 +1,32 @@
+with cohort as 
+(SELECT DISTINCT (d.patientunitstayid) FROM diagnosis d 
+INNER JOIN icustay_detail i
+ON d.patientunitstayid = i.patientunitstayid
+where d.diagnosisstring ilike 'neurologic|seizures|%'
+and d.diagnosispriority = 'Primary'
+and d.activeupondischarge = 'True'
+and unitvisitnumber = 1
+and icu_los_hours >= 24)
+SELECT c.patientunitstayid, fu.urineoutput, (fl.hemoglobin_max+fl.hemoglobin_min)/2 as hemoglobin_mean, fl.rdw_max,
+ (fl.hematocrit_max+fl.hematocrit_min)/2 as hematocrit_mean, (fl.creatinine_min+fl.creatinine_max)/2 as creatinine_mean,
+ fv.resp_rate_mean,	ie.age as admission_age, ie.admissionweight as weight, fv.heart_rate_mean,fv.temperature_mean, oa.oasis, 
+ ap.acutephysiologyscore as apsiii, case when ch.liver3 >0 THEN 1 else 0 end as severe_liver_disease, 
+ case when ch.cancer2 >0 THEN 1 else 0 end as malignant_cancer, 
+ case when ie.hospitaldischargeoffset >= 129600 THEN 0 else ie.hosp_mort END as death_90day
+  from cohort c
+ LEFT JOIN first_day_urine_output fu
+ on c.patientunitstayid = fu.patientunitstayid
+ LEFT JOIN labsfirstday fl 
+ on c.patientunitstayid = fl.patientunitstayid
+ LEFT JOIN first_day_vitalsign fv 
+ on c.patientunitstayid = fv.patientunitstayid
+ LEFT JOIN icustay_detail ie 
+ on c.patientunitstayid = ie.patientunitstayid
+ LEFT JOIN oasis oa 
+ on c.patientunitstayid = CAST(oa.patientunitstayid as INT)
+ LEFT JOIN apachepatientresult ap 
+ on c.patientunitstayid = ap.patientunitstayid
+ LEFT JOIN charlson ch 
+ on c.patientunitstayid = ch.patientunitstayid
+ ORDER BY patientunitstayid
+ 
